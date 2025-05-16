@@ -1,23 +1,24 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useInfiniteQuery, type QueryFunctionContext } from '@tanstack/react-query';
 import { useInView } from 'react-intersection-observer';
+import debounce from 'lodash.debounce';
+
 import type { Product } from '@models/product';
-import { type QueryFunctionContext, useInfiniteQuery } from '@tanstack/react-query';
 
 import SearchInput from './search-input';
 import SearchList from './search-list';
 import SearchListSkeleton from './search-list-skeleton';
 
 export default function SearchBoard() {
-  // keyword
-  const [keyword, setKeyword] = useState('');
-  const trimmedKeyword = keyword.trim();
+  // 입력창에 보여줄 바로 반응하는 상태
+  const [inputValue, setInputValue] = useState('');
+  // 디바운싱 적용할 검색 트리거 상태
+  const [searchKeyword, setSearchKeyword] = useState('');
 
-  // 무한스크롤 감지용 intersectionObservation
   const { ref, inView } = useInView();
 
-  // default page == 1, queryKey를 받아와서 query로 사용
   const fetchMovies = async ({ pageParam = 1, queryKey }: QueryFunctionContext<readonly unknown[]>) => {
     const keyword = queryKey[0];
     const url = `/api/search?q=${keyword}&page=${pageParam}`;
@@ -27,11 +28,12 @@ export default function SearchBoard() {
     return data;
   };
 
+  // 검색 쿼리
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading, isPending } = useInfiniteQuery<
     Product[],
     Error
   >({
-    queryKey: [trimmedKeyword],
+    queryKey: [searchKeyword],
     queryFn: fetchMovies,
     getNextPageParam: (lastPage, allPages) => {
       return lastPage.length > 0 ? allPages.length + 1 : undefined;
@@ -47,23 +49,48 @@ export default function SearchBoard() {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
+  // 디바운싱 적용
+  const debouncedSearch = useCallback(
+    debounce((value: string) => {
+      setSearchKeyword(value.trim());
+    }, 500), // 500ms
+    [],
+  );
+
+  // input 입력 시 호출됨
+  const handleChange = (value: string) => {
+    setInputValue(value); // 입력값은 즉시 반영
+    debouncedSearch(value); // 검색 트리거는 디바운스 처리
+  };
+
+  // 엔터 누르면 바로 검색 실행
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
-      handleSearch(keyword);
+      debouncedSearch.cancel(); // 디바운싱 취소
+      setSearchKeyword(inputValue); // 즉시 검색
     }
   };
 
-  const handleSearch = (searchText = '') => {
-    setKeyword(searchText);
+  // 검색 아이콘 클릭 시 검색 실행
+  const handleSearch = () => {
+    debouncedSearch.cancel();
+    setSearchKeyword(inputValue);
+  };
+
+  // 삭제 아이콘 클릭 시 검색창 및 결과 초기화
+  const handleClear = () => {
+    setInputValue('');
+    setSearchKeyword('');
   };
 
   return (
     <div>
       <SearchInput
-        keyword={keyword}
-        handleSearch={handleSearch}
-        setKeyword={setKeyword}
+        keyword={inputValue}
+        handleChange={handleChange}
         handleKeyDown={handleKeyDown}
+        handleSearch={handleSearch}
+        handleClear={handleClear}
       />
       <div className="text-headline-01 ml-2 pt-4 pb-4">Top Searches</div>
       {isPending || isLoading ? (
