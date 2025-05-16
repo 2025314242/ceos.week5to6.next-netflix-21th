@@ -1,4 +1,6 @@
+import { QueryProvider } from '@services/query';
 import type { Metadata } from 'next';
+
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -14,7 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="flex min-h-screen items-center justify-center">
-        <div className="mobile-frame bg-grayscale-00-black relative">{children}</div>
+        <QueryProvider>
+          <div className="mobile-frame bg-grayscale-00-black relative">{children}</div>
+        </QueryProvider>
       </body>
     </html>
   );

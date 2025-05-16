@@ -9,8 +9,10 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@tanstack/react-query": "^5.75.1",
+    "@tanstack/react-query": "^5.76.1",
+    "@tanstack/react-query-devtools": "^5.76.1",
     "axios": "^1.9.0",
+    "lodash": "^4.17.21",
     "lottie-react": "^2.4.1",
     "next": "15.3.1",
     "react": "^19.0.0",
@@ -22,6 +24,8 @@
     "@eslint/eslintrc": "^3",
     "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4",
+    "@tanstack/eslint-plugin-query": "^5.74.7",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19",
@@ -29,6 +33,7 @@
     "eslint-config-next": "15.3.1",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.2.6",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.11",
     "tailwindcss": "^4",

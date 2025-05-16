@@ -1,15 +1,14 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Image from 'next/image';
-import Link from 'next/link';
+import type { Product } from '@models/product';
 import InformationIcon from '@public/icons/home/infomation.svg';
 import PlayIcon from '@public/icons/home/play.svg';
 import PlusIcon from '@public/icons/home/plus.svg';
-import type { Product } from '@models/product';
-import { useProductStore } from '@store/product';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import Image from 'next/image';
+import Link from 'next/link';
 
-interface ThumbNailProps {
+interface ThumbnailProps {
   path: string;
 }
 
@@ -18,25 +17,13 @@ interface ThumbnailData {
   index: number;
 }
 
-export default function ThumbNail({ path }: ThumbNailProps) {
-  const { setProduct } = useProductStore();
-  const [isLoading, setIsLoading] = useState(true);
-  const [thumbnailData, setThumbnailData] = useState<ThumbnailData | null>(null);
+export default function Thumbnail({ path }: ThumbnailProps) {
+  const { data } = useSuspenseQuery<ThumbnailData>({
+    queryKey: ['tmdb', path],
+    queryFn: async () => (await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}${path}`)).json(),
+  });
 
-  useEffect(() => {
-    fetch(path)
-      .then((res) => res.json())
-      .then((data: ThumbnailData) => {
-        setProduct(data.product);
-        setThumbnailData(data);
-        setIsLoading(false);
-      })
-      .catch(console.error);
-  }, [path, setProduct]);
-
-  if (isLoading || !thumbnailData) return null;
-
-  const { product: item, index } = thumbnailData;
+  const { product: item, index } = data;
 
   return (
     <section className="overflow-x-hidden">
@@ -62,7 +49,7 @@ export default function ThumbNail({ path }: ThumbNailProps) {
           <PlusIcon className="text-grayscale-02-white h-6 w-6" />
           <span className="text-body-03 text-grayscale-02-white">My List</span>
         </div>
-        <div className="bg-background-03 hover:bg-background-03-hr flex h-[45px] w-[110.63px] items-center justify-between rounded-[5.63px] pt-2 pr-[19.63px] pb-[7px] pl-[19px]">
+        <div className="bg-background-03 hover:bg-background-03-hr flex h-[45px] w-[110.63px] cursor-pointer items-center justify-between rounded-[5.63px] pt-2 pr-[19.63px] pb-[7px] pl-[19px]">
           <PlayIcon className="text-grayscale-00-black h-[21.6px] w-[18px]" />
           <span className="text-subhead-01 text-grayscale-00-black">Play</span>
         </div>

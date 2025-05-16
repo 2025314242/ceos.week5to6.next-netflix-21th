@@ -6,6 +6,7 @@ import { useInView } from 'react-intersection-observer';
 import debounce from 'lodash.debounce';
 
 import type { Product } from '@models/product';
+
 import SearchInput from './search-input';
 import SearchList from './search-list';
 import SearchListSkeleton from './search-list-skeleton';
@@ -48,7 +49,7 @@ export default function SearchBoard() {
     }
   }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
 
-  // 디바운싱 적용용
+  // 디바운싱 적용
   const debouncedSearch = useCallback(
     debounce((value: string) => {
       setSearchKeyword(value.trim());
